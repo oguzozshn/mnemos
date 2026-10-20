@@ -1,0 +1,79 @@
+[
+  {
+    "uuid": "11111111-1111-4111-8111-111111111111",
+    "name": "Planning a weekend hike",
+    "summary": "",
+    "created_at": "2025-03-01T09:00:00.000000Z",
+    "updated_at": "2025-03-01T09:10:00.000000Z",
+    "account": {"uuid": "00000000-0000-4000-8000-000000000000"},
+    "chat_messages": [
+      {
+        "uuid": "aaaaaaaa-0000-4000-8000-000000000001",
+        "text": "I want to start hiking every weekend. Where should I begin?",
+        "content": [
+          {"type": "text", "text": "I want to start hiking every weekend. Where should I begin?"}
+        ],
+        "sender": "human",
+        "created_at": "2025-03-01T09:00:00.000000Z",
+        "updated_at": "2025-03-01T09:00:00.000000Z",
+        "attachments": [],
+        "files": []
+      },
+      {
+        "uuid": "aaaaaaaa-0000-4000-8000-000000000002",
+        "text": "Start with short trails near you and build up gradually.",
+        "content": [
+          {"type": "text", "text": "Start with short trails near you and build up gradually."}
+        ],
+        "sender": "assistant",
+        "created_at": "2025-03-01T09:00:10.000000Z",
+        "updated_at": "2025-03-01T09:00:10.000000Z",
+        "attachments": [],
+        "files": []
+      }
+    ]
+  },
+  {
+    "uuid": "22222222-2222-4222-8222-222222222222",
+    "name": "Hafta sonu planı",
+    "created_at": "2025-04-12T18:30:00+03:00",
+    "updated_at": "2025-04-12T18:45:00+03:00",
+    "chat_messages": [
+      {
+        "uuid": "bbbbbbbb-0000-4000-8000-000000000001",
+        "text": "",
+        "content": [
+          {"type": "text", "text": "Bu hafta sonu yürüyüşe başlayacağım, galiba."},
+          {"type": "tool_use", "name": "web_search", "input": {"query": "trails"}},
+          {"type": "text", "text": "Hangi ekipman lazım?"}
+        ],
+        "sender": "human",
+        "created_at": "2025-04-12T18:30:00+03:00"
+      },
+      {
+        "uuid": "bbbbbbbb-0000-4000-8000-000000000002",
+        "text": "Rahat bir ayakkabı ve su yeterli.",
+        "sender": "assistant",
+        "created_at": "2025-04-12T18:31:00+03:00"
+      },
+      {
+        "uuid": "bbbbbbbb-0000-4000-8000-000000000003",
+        "text": "   ",
+        "content": [{"type": "thinking", "thinking": "internal"}],
+        "sender": "human",
+        "created_at": "2025-04-12T18:32:00+03:00"
+      },
+      {
+        "text": "Message without a uuid still gets a stable id.",
+        "sender": "human",
+        "created_at": "2025-04-12T18:33:00+03:00"
+      }
+    ]
+  },
+  {
+    "uuid": "33333333-3333-4333-8333-333333333333",
+    "name": "",
+    "created_at": "2025-05-02T07:00:00Z",
+    "chat_messages": []
+  }
+]

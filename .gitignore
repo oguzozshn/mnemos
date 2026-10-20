@@ -1,0 +1,23 @@
+# Personal data: never commit
+data/
+*.db
+*.db-journal
+*.zip
+
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+dist/
+build/
+*.egg-info/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
