@@ -14,7 +14,7 @@ See [CLAUDE.md](CLAUDE.md) for goals, rules, architecture and the phase plan.
 | Phase | Scope | State |
 |---|---|---|
 | 1 | Ingest (Claude ✅, ChatGPT, Gemini) + `stats` | in progress |
-| 2 | Noise filtering | — |
+| 2 | Noise filtering + language detection | ✅ |
 | 3 | Fact extraction | — |
 | 4 | Ask (CLI + MCP server) | — |
 | 5 | Insights report | — |
@@ -46,6 +46,22 @@ uv run mnemos ingest data/raw/claude/my-export.zip --source claude
 # Overview: counts, date range, messages per month, rough token size of my messages
 uv run mnemos stats
 ```
+
+### Noise filter (phase 2)
+
+`ingest` runs it automatically on new messages. It removes pasted code, logs, stack traces,
+terminal sessions (incl. IntelliJ run output) and tables from each message and keeps my own
+words in `clean_text`, so "why does this fail?" + 40 lines of stack trace becomes just the
+question. It also tags each message `tr`, `en` or `mixed`.
+
+```bash
+uv run mnemos clean              # re-run after the rules change (only outdated rows)
+uv run mnemos clean --force      # re-run everything
+uv run mnemos clean --review 10  # print 10 random decisions to check the filter
+```
+
+Known limit: pasted *prose* (an article, an AI answer, a course list) can't be told apart
+from my own writing by rules; phase 3's extraction prompt handles that.
 
 The database is created at `data/mnemos.db` (override with `--db`).
 

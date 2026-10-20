@@ -1,4 +1,4 @@
-"""Command line interface: `mnemos ingest`, `mnemos stats`."""
+"""Command line interface: `mnemos ingest`, `mnemos clean`, `mnemos stats`."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from typing import Annotated
 import typer
 
 from mnemos import ingest as ingest_mod
+from mnemos import noise as noise_mod
 from mnemos import stats as stats_mod
 from mnemos.ingest._io import ExportNotFound
 from mnemos.store import DEFAULT_DB_PATH, connect, insert_messages
@@ -33,6 +34,47 @@ def ingest(
         typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
         raise typer.Exit(1) from None
     typer.echo(f"{source}: {added:,} messages added, {skipped:,} already present.")
+    if added:
+        n = noise_mod.run(conn)
+        typer.echo(f"Noise filter applied to {n:,} new messages.")
+
+
+@app.command()
+def clean(
+    db: DbOption = DEFAULT_DB_PATH,
+    force: Annotated[bool, typer.Option(help="Re-process every message.")] = False,
+    review: Annotated[
+        int, typer.Option(help="Print N random filter decisions on my messages to check them.")
+    ] = 0,
+) -> None:
+    """Separate my own words from pasted code/logs/stack traces (phase 2)."""
+    conn = connect(db)
+    n = noise_mod.run(conn, force=force)
+    typer.echo(f"Processed {n:,} messages (filter v{noise_mod.CLEAN_VERSION}).")
+
+    if review:
+        rows = conn.execute(
+            """
+            SELECT text, clean_text, noise_reason, is_noise, pasted_chars, lang FROM messages
+            WHERE role = 'user' AND (noise_reason IS NOT NULL OR LENGTH(text) > 300)
+            ORDER BY RANDOM() LIMIT ?
+            """,
+            (review,),
+        ).fetchall()
+        for r in rows:
+            status = "NOISE" if r["is_noise"] else "kept"
+            typer.secho(
+                f"\n[{status}] reason={r['noise_reason']} pasted={r['pasted_chars']:,} "
+                f"of {len(r['text']):,} chars, lang={r['lang']}",
+                bold=True,
+            )
+            typer.echo("  original: " + _preview(r["text"]))
+            typer.echo("  kept    : " + (_preview(r["clean_text"]) or "(nothing)"))
+
+
+def _preview(text: str | None, width: int = 160) -> str:
+    flat = " ".join((text or "").split())
+    return flat if len(flat) <= width else flat[: width - 1] + "…"
 
 
 @app.command()
@@ -74,10 +116,22 @@ def stats(db: DbOption = DEFAULT_DB_PATH) -> None:
     for bucket, n in stats_mod.user_message_length_buckets(conn):
         typer.echo(f"  {bucket[3:]:<36}{n:>7,}")
 
-    typer.echo(
-        "\n~tokens are a rough estimate (chars / 3.5). Long pasted content will be filtered "
-        "out in phase 2, so the extraction cost will be lower than the 'my ~tokens' total."
-    )
+    ns = stats_mod.noise(conn)
+    typer.secho("\nNoise filter (my messages)", bold=True)
+    if not ns.classified:
+        typer.echo("  Not run yet. Run `mnemos clean`.")
+    else:
+        if ns.unclassified:
+            typer.echo(f"  {ns.unclassified:,} messages not classified yet: run `mnemos clean`.")
+        typer.echo(f"  pure noise (nothing of mine left): {ns.noise_messages:>7,}")
+        typer.echo(f"  pasted content removed           : {stats_mod.est_tokens(ns.pasted_chars):>7,} ~tokens")
+        typer.echo(f"  my own words left                : {ns.clean_tokens_est:>7,} ~tokens")
+        if ns.by_reason:
+            typer.echo("  pasted content by kind: " + ", ".join(f"{k} {v}" for k, v in ns.by_reason))
+        if ns.by_lang:
+            typer.echo("  language of my messages: " + ", ".join(f"{k} {v}" for k, v in ns.by_lang))
+
+    typer.echo("\n~tokens are a rough estimate (chars / 3.5).")
 
 
 if __name__ == "__main__":

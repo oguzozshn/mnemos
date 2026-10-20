@@ -37,6 +37,12 @@ MIGRATIONS: list[str] = [
     CREATE INDEX idx_messages_created ON messages(created_at);
     CREATE INDEX idx_messages_role ON messages(role);
     """,
+    """
+    ALTER TABLE messages ADD COLUMN clean_text TEXT;        -- text minus pasted blocks
+    ALTER TABLE messages ADD COLUMN pasted_chars INTEGER;
+    ALTER TABLE messages ADD COLUMN noise_reason TEXT;      -- code, log, stacktrace, ...
+    ALTER TABLE messages ADD COLUMN clean_version INTEGER;  -- noise.CLEAN_VERSION used
+    """,
 ]
 
 
